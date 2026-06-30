@@ -157,6 +157,22 @@ body {
 }
 
 /* ════════════════════════════════════════
+   AUTH PAGE
+   ════════════════════════════════════════ */
+
+/* Left image panel: hidden on mobile, shown on desktop */
+.auth-left-panel { display: none; }
+@media (min-width: 768px) {
+  .auth-left-panel { display: block; }
+}
+
+/* Mobile logo: shown on mobile, hidden on desktop */
+.auth-mobile-logo { display: flex !important; }
+@media (min-width: 768px) {
+  .auth-mobile-logo { display: none !important; }
+}
+
+/* ════════════════════════════════════════
    FILTER SIDEBAR
    ════════════════════════════════════════ */
 
