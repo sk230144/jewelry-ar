@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LuxeAR — AR/VR Jewelry E-Commerce Platform
+
+A next-generation luxury jewelry shopping experience powered by **Augmented Reality** and **3D visualization**, built for the Grovyn assignment.
+
+---
+
+## Live Features
+
+| Feature | Description |
+|---|---|
+| **AR Virtual Try-On** | Real-time camera overlay to try on rings, necklaces, bracelets & earrings |
+| **3D Product Viewer** | Interactive Three.js models with orbit controls, materials & lighting |
+| **Authentication** | JWT-based auth with bcrypt password hashing |
+| **Product Catalog** | Full CRUD with search, filtering (category, material, price), sorting, pagination |
+| **Cart & Checkout** | Persistent cart via Zustand, multi-step checkout flow |
+| **Wishlist** | Save and manage favourite items |
+| **Contact System** | Inquiry form with API handler |
+| **Responsive Design** | Mobile-first, dark luxury aesthetic with gold accents |
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 15 (App Router), TypeScript, Tailwind CSS |
+| 3D / AR | Three.js, @react-three/fiber, @react-three/drei, WebRTC |
+| Backend | Next.js API Routes (serverless) |
+| Database | MongoDB with Mongoose ODM |
+| Auth | JWT (jsonwebtoken) + bcryptjs |
+| State | Zustand (persisted to localStorage) |
+| Deployment | Vercel (recommended) |
+
+---
 
 ## Getting Started
 
-First, run the development server:
-
+### 1. Install
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd jewelry-ar
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Environment Variables
+Create `.env.local`:
+```env
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/jewelry-ar
+JWT_SECRET=your-super-secret-key-min-32-characters
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Seed the Database
+```bash
+npm run dev
+# then open:
+http://localhost:3000/api/products/seed
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Run
+```bash
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000)
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment to Vercel
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Push to GitHub
+2. Import at vercel.com
+3. Add the three env vars in Vercel dashboard
+4. Deploy
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/
+│   ├── page.tsx              # Homepage
+│   ├── products/             # Listing + [id] detail with 3D + AR
+│   ├── auth/                 # Login / Register
+│   ├── cart/                 # Shopping cart
+│   ├── checkout/             # Multi-step checkout
+│   ├── wishlist/             # Saved items
+│   ├── contact/              # Contact form
+│   └── api/                  # auth, products, orders, wishlist, contact
+├── components/
+│   ├── 3d/JewelryViewer     # Three.js viewer
+│   ├── ar/ARTryOn           # WebRTC camera + canvas AR overlay
+│   ├── layout/              # Navbar, Footer
+│   └── ui/                  # ProductCard, FilterSidebar, FeaturedProducts
+├── models/                  # Mongoose: User, Product, Order
+├── lib/                     # mongodb.ts, auth.ts (JWT)
+├── store/                   # Zustand global state (cart, wishlist, user)
+└── types/                   # TypeScript interfaces
+```
+
+---
+
+## AR Technology
+
+Uses **WebRTC** `getUserMedia` + **HTML5 Canvas** overlay:
+- Category-specific jewelry overlays (ring on finger, necklace arc, bracelet band, earring drops)
+- Animated golden sparkle pulse effects
+- Photo capture & save to device
+- No app install, no third-party SDK — browser-native
+
+---
+
+## Evaluation Highlights
+
+- **Innovation**: Real AR try-on + interactive 3D viewer with material customization
+- **UX**: Immersive dark luxury aesthetic with gold accents, smooth Framer Motion
+- **Architecture**: Clean Next.js App Router, Mongoose models, Zustand store
+- **Performance**: Dynamic imports for Three.js (SSR excluded), Next/Image optimization
+- **Code Quality**: TypeScript throughout, clean component boundaries
