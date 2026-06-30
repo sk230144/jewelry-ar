@@ -51,7 +51,7 @@ export default function ProductsGrid() {
   return (
     <div>
       <p className="text-sm mb-6" style={{ color: '#6B7280' }}>{total} products found</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="products-listing-grid">
         {products.map((p) => <ProductCard key={p._id} product={p} />)}
       </div>
 

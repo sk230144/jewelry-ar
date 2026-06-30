@@ -53,7 +53,7 @@ const seedProducts = [
     material: '18K Yellow Gold',
     gemstone: 'Emerald',
     images: [
-      'https://images.unsplash.com/photo-1573408301185-9519f94e2a87?w=800&q=80',
+      'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=800&q=80',
       'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=800&q=80',
     ],
     colors: ['Yellow Gold'],
@@ -113,7 +113,7 @@ const seedProducts = [
     material: '14K White Gold',
     gemstone: 'Diamond',
     images: [
-      'https://images.unsplash.com/photo-1573408301185-9519f94e2a87?w=800&q=80',
+      'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=800&q=80',
     ],
     colors: ['White Gold', 'Rose Gold', 'Yellow Gold'],
     stock: 12,

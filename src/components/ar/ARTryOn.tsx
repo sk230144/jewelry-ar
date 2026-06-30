@@ -133,40 +133,49 @@ export default function ARTryOn({ productName, category, onClose }: Props) {
     ctx.fillText(`AR Preview: ${productName}`, w / 2, h - 40);
   }, [category, productName]);
 
-  const startCamera = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
-      });
+  const startCamera = useCallback(() => {
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+    }).then((stream) => {
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        setLoading(false);
+      const video = videoRef.current;
+      if (!video) return;
 
-        const animate = () => {
-          const video = videoRef.current;
-          const canvas = canvasRef.current;
-          if (!video || !canvas) return;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return;
-          canvas.width = video.videoWidth || 640;
-          canvas.height = video.videoHeight || 480;
-          ctx.save();
-          ctx.translate(canvas.width, 0);
-          ctx.scale(-1, 1);
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          ctx.restore();
-          drawAROverlay(ctx, canvas.width, canvas.height);
-          animFrameRef.current = requestAnimationFrame(animate);
-        };
-        animate();
-      }
-    } catch (err) {
+      video.srcObject = stream;
+
+      const animate = () => {
+        const v = videoRef.current;
+        const canvas = canvasRef.current;
+        if (!v || !canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        canvas.width = v.videoWidth || 640;
+        canvas.height = v.videoHeight || 480;
+        ctx.save();
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+        drawAROverlay(ctx, canvas.width, canvas.height);
+        animFrameRef.current = requestAnimationFrame(animate);
+      };
+
+      // Wait for metadata before playing — prevents AbortError
+      video.onloadedmetadata = () => {
+        video.play().then(() => {
+          setLoading(false);
+          animate();
+        }).catch((err) => {
+          console.error('play() failed:', err);
+          setCameraError('Could not start camera preview. Please try again.');
+          setLoading(false);
+        });
+      };
+    }).catch((err) => {
       console.error(err);
       setCameraError('Camera access denied. Please allow camera permission and try again.');
       setLoading(false);
-    }
+    });
   }, [drawAROverlay]);
 
   useEffect(() => {
@@ -192,43 +201,43 @@ export default function ARTryOn({ productName, category, onClose }: Props) {
   };
 
   return (
-    <div className="ar-overlay flex flex-col">
+    <div className="ar-overlay" style={{ display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-black/80 backdrop-blur border-b border-white/10">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem 1rem', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
         <div>
-          <h3 className="font-semibold text-white">AR Try-On</h3>
-          <p className="text-xs text-gray-400">{productName}</p>
+          <h3 style={{ fontWeight: 600, color: '#fff', fontSize: '0.95rem' }}>AR Try-On</h3>
+          <p style={{ fontSize: '0.75rem', color: '#9CA3AF', marginTop: '0.1rem' }}>{productName}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setInstructions(!instructions)} className="p-2 text-gray-400 hover:text-white">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+          <button onClick={() => setInstructions(!instructions)} style={{ padding: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}>
             <Info size={18} />
           </button>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-white">
+          <button onClick={onClose} style={{ padding: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}>
             <X size={22} />
           </button>
         </div>
       </div>
 
       {/* Camera view */}
-      <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center">
-        <video ref={videoRef} className="hidden" playsInline muted />
-        <canvas ref={canvasRef} className="w-full h-full object-contain" />
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <video ref={videoRef} style={{ display: 'none' }} playsInline muted />
+        <canvas ref={canvasRef} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
 
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/80">
-            <div className="text-center">
-              <div className="w-12 h-12 border-2 border-[#C9A84C] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-gray-400 text-sm">Starting camera...</p>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.8)' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ width: '3rem', height: '3rem', border: '2px solid #C9A84C', borderTopColor: 'transparent', borderRadius: '9999px', margin: '0 auto 0.75rem', animation: 'spin 0.8s linear infinite' }} />
+              <p style={{ color: '#9CA3AF', fontSize: '0.85rem' }}>Starting camera…</p>
             </div>
           </div>
         )}
 
         {cameraError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/80">
-            <div className="text-center max-w-sm px-6">
-              <CameraOff size={48} className="text-gray-600 mx-auto mb-4" />
-              <p className="text-red-400 text-sm mb-4">{cameraError}</p>
-              <button onClick={startCamera} className="btn-gold text-sm">
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.85)' }}>
+            <div style={{ textAlign: 'center', maxWidth: '22rem', padding: '0 1.5rem' }}>
+              <CameraOff size={48} color="#374151" style={{ margin: '0 auto 1rem' }} />
+              <p style={{ color: '#F87171', fontSize: '0.85rem', marginBottom: '1rem' }}>{cameraError}</p>
+              <button onClick={startCamera} className="btn-gold" style={{ fontSize: '0.85rem' }}>
                 <Camera size={16} /> Retry
               </button>
             </div>
@@ -236,10 +245,10 @@ export default function ARTryOn({ productName, category, onClose }: Props) {
         )}
 
         {instructions && !loading && !cameraError && (
-          <div className="absolute top-4 left-4 right-4">
-            <div className="bg-black/70 backdrop-blur rounded-xl p-3 text-center">
-              <p className="text-sm text-gray-300">{getInstructionText()}</p>
-              <button onClick={() => setInstructions(false)} className="text-xs text-[#C9A84C] mt-1">Dismiss</button>
+          <div style={{ position: 'absolute', top: '1rem', left: '1rem', right: '1rem' }}>
+            <div style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(8px)', borderRadius: '0.75rem', padding: '0.75rem 1rem', textAlign: 'center', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <p style={{ fontSize: '0.82rem', color: '#D1D5DB' }}>{getInstructionText()}</p>
+              <button onClick={() => setInstructions(false)} style={{ fontSize: '0.72rem', color: '#C9A84C', marginTop: '0.35rem', background: 'none', border: 'none', cursor: 'pointer' }}>Dismiss</button>
             </div>
           </div>
         )}
@@ -247,14 +256,14 @@ export default function ARTryOn({ productName, category, onClose }: Props) {
 
       {/* Captured photo preview */}
       {capturing && capturedImage && (
-        <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-10">
-          <div className="text-center p-6 max-w-sm">
-            <img src={capturedImage} alt="Captured" className="rounded-xl w-full mb-4 border border-white/10" />
-            <div className="flex gap-3 justify-center">
-              <button onClick={downloadPhoto} className="btn-gold text-sm">
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+          <div style={{ textAlign: 'center', padding: '1.5rem', maxWidth: '22rem', width: '100%' }}>
+            <img src={capturedImage} alt="Captured" style={{ borderRadius: '0.75rem', width: '100%', marginBottom: '1rem', border: '1px solid rgba(255,255,255,0.1)' }} />
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              <button onClick={downloadPhoto} className="btn-gold" style={{ fontSize: '0.85rem' }}>
                 <Download size={16} /> Save Photo
               </button>
-              <button onClick={() => setCapturing(false)} className="btn-outline-gold text-sm">
+              <button onClick={() => setCapturing(false)} className="btn-outline-gold" style={{ fontSize: '0.85rem' }}>
                 <RotateCcw size={16} /> Retake
               </button>
             </div>
@@ -263,13 +272,13 @@ export default function ARTryOn({ productName, category, onClose }: Props) {
       )}
 
       {/* Bottom controls */}
-      <div className="p-6 bg-black/80 backdrop-blur border-t border-white/10 flex justify-center gap-6">
+      <div style={{ padding: '1.25rem 1.5rem', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(16px)', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'center', gap: '1.5rem', flexShrink: 0 }}>
         <button
           onClick={capturePhoto}
           disabled={loading || !!cameraError}
-          className="w-16 h-16 rounded-full bg-white flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-40"
+          style={{ width: '4rem', height: '4rem', borderRadius: '9999px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', transition: 'background 0.2s', opacity: (loading || !!cameraError) ? 0.4 : 1 }}
         >
-          <Camera size={28} className="text-black" />
+          <Camera size={26} color="#000" />
         </button>
       </div>
     </div>
